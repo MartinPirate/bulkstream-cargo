@@ -31,7 +31,7 @@ rsync -az --delete --no-perms --no-owner --no-group --omit-dir-times \
     --exclude '/.git/' --exclude '/vendor/' --exclude '/node_modules/' \
     --exclude '/.env' --exclude '/storage/' --exclude '/deploy/' \
     --exclude '/public/js/filament/' --exclude '/public/css/filament/' --exclude '/public/fonts/filament/' \
-    --exclude '/bootstrap/cache/*.php' --exclude '/.seeded' \
+    --exclude '/bootstrap/cache/' --exclude '/.seeded' \
     -e "ssh -i $KEY" ./ "$USER_@$HOST:$ROOT/app/"
 rsync -az -e "ssh -i $KEY" deploy/Dockerfile deploy/compose.prod.yml deploy/nginx.conf "$USER_@$HOST:$ROOT/deploy/"
 scp -q -i "$KEY" deploy/.env.prod "$USER_@$HOST:$ROOT/deploy/.env.prod"
