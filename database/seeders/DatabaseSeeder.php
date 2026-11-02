@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
             Role::findOrCreate($role->value, 'web');
         }
 
-        $password = (string) env('DEMO_PASSWORD', 'change-me-'.bin2hex(random_bytes(4)));
+        $password = (string) (config('app.demo_password') ?: 'change-me-'.bin2hex(random_bytes(4)));
 
         $this->user('Terminal Admin', 'admin@bulkstream.test', UserRole::Admin, $password);
         $this->user('Shift Supervisor', 'supervisor@bulkstream.test', UserRole::Supervisor, $password);
