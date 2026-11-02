@@ -1,0 +1,129 @@
+/*
+ * Bulkstream panel theme, after the Filament demo look:
+ * grid-paper canvas, square flat surfaces with hairline borders, deep navy primary.
+ * Inlined by AdminPanelProvider (no build step needed).
+ */
+
+:root {
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+    --radius-xl: 0;
+    --bs-canvas: #f4f4f5;
+    --bs-grid: rgba(24, 24, 27, 0.06);
+    --bs-surface: #ffffff;
+    --bs-line: #e4e4e7;
+    --bs-tick: #a1a1aa;
+}
+
+.dark {
+    --bs-canvas: #09090b;
+    --bs-grid: rgba(255, 255, 255, 0.05);
+    --bs-surface: #18181b;
+    --bs-line: #27272a;
+    --bs-tick: #52525b;
+}
+
+/* Grid-paper canvas behind every page */
+.fi-body,
+.fi-simple-layout {
+    background-color: var(--bs-canvas);
+    background-image:
+        linear-gradient(var(--bs-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--bs-grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: -1px -1px;
+}
+
+/* Login card: flat white sheet, hairline border, corner ticks */
+.fi-simple-main {
+    position: relative;
+    background: var(--bs-surface);
+    border: 1px solid var(--bs-line);
+    box-shadow: none !important;
+    --tw-ring-color: transparent;
+}
+
+.fi-simple-main::before,
+.fi-simple-main::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+}
+
+.fi-simple-main::before {
+    top: -1px;
+    left: -1px;
+    border-top: 2px solid var(--bs-tick);
+    border-left: 2px solid var(--bs-tick);
+}
+
+.fi-simple-main::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 2px solid var(--bs-tick);
+    border-right: 2px solid var(--bs-tick);
+}
+
+/* Flat panels everywhere: sections, tables, widgets, modals */
+.fi-section,
+.fi-ta-ctn,
+.fi-wi-stats-overview-stat,
+.fi-modal-window,
+.fi-dropdown-panel {
+    box-shadow: none !important;
+    border: 1px solid var(--bs-line);
+    --tw-ring-color: transparent;
+}
+
+/* Chrome: white sidebar and topbar with hairlines */
+.fi-sidebar,
+.fi-topbar {
+    background-color: var(--bs-surface);
+    box-shadow: none !important;
+}
+
+.fi-sidebar {
+    border-right: 1px solid var(--bs-line);
+}
+
+.fi-topbar {
+    border-bottom: 1px solid var(--bs-line);
+}
+
+/* Inputs: square, flat, hairline */
+.fi-input-wrp {
+    box-shadow: none !important;
+    border: 1px solid var(--bs-line);
+    --tw-ring-color: transparent;
+}
+
+.fi-input-wrp:focus-within {
+    border-color: var(--primary-600);
+}
+
+/* Buttons: solid, flat */
+.fi-btn {
+    box-shadow: none !important;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+/* Brand wordmark */
+.bs-wordmark {
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: #1c1917;
+}
+
+.dark .bs-wordmark {
+    color: #fafaf9;
+}
+
+.bs-wordmark span {
+    color: var(--primary-600);
+}

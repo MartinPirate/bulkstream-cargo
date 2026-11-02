@@ -31,7 +31,7 @@ class TankLevelsChart extends ChartWidget
                     'label' => 'Fill %',
                     'data' => $tanks->map(fn (Tank $t) => $t->fillPercent())->all(),
                     'backgroundColor' => $tanks->map(fn (Tank $t) => $t->fillPercent() >= $high ? '#dc2626' : $palette[$t->commodity->value])->all(),
-                    'borderRadius' => 4,
+                    'borderRadius' => 0,
                 ],
             ],
             'labels' => $tanks->map(fn (Tank $t) => "{$t->code} ({$t->commodity->shortLabel()})")->all(),

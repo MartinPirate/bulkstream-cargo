@@ -36,7 +36,7 @@ class DemoLogin extends Login
         $row = fn (string $role, string $email) => "<tr><td style=\"padding:2px 12px 2px 0;opacity:.7\">{$role}</td><td style=\"font-family:ui-monospace,monospace\">{$email}</td></tr>";
 
         return new HtmlString(
-            '<div style="text-align:left;font-size:.85rem;margin-top:.5rem;padding:.75rem 1rem;border:1px solid rgba(125,125,125,.3);border-radius:.5rem">'
+            '<div style="text-align:left;font-size:.85rem;margin-top:.5rem;padding:.75rem 1rem;border:1px solid #e4e4e7;background:#fafafa">'
             .'<strong>Test accounts</strong> (admin is pre-filled)'
             .'<table style="margin-top:.4rem">'
             .$row('Admin', 'admin@bulkstream.test')
