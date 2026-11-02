@@ -1,0 +1,6 @@
+Bulkstream Cargo Handling — technical assessment submission
+Author: Martin Kiragu <sirmartins6@gmail.com> · https://github.com/MartinPirate
+Built: 2–3 November 2026, for the Bulkstream Limited Systems Developer assessment.
+
+The domain core (packages/tank-terminal) is the author's own reusable library
+and remains his property. See LICENSE for the evaluation-only terms.

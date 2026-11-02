@@ -1,0 +1,20 @@
+{
+    "name": "martinkiragu/tank-terminal",
+    "description": "Framework-agnostic domain core for bulk liquid terminal operations: tank capacity guards, transit loss policy and chronological movement sequencing.",
+    "type": "library",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Martin Kiragu",
+            "email": "sirmartins6@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "MartinKiragu\\TankTerminal\\": "src/"
+        }
+    }
+}

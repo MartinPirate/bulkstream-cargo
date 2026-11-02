@@ -1,0 +1,90 @@
+# Bulkstream cargo demo on the shared Linode box. Only `web` joins the edge
+# network (alias bulkstream-web) so Caddy can reach it; MySQL stays private.
+# Every service has a hard memory cap: the box is shared with live services.
+name: bulkstream
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "3" }
+
+x-php: &php
+  image: bulkstream/php:latest
+  restart: unless-stopped
+  volumes:
+    - ../app:/var/www/html
+  depends_on:
+    db: { condition: service_healthy }
+  logging: *logging
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: bulkstream
+      MYSQL_USER: bulkstream
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
+    command:
+      - --innodb-buffer-pool-size=64M
+      - --max-connections=40
+      - --performance-schema=OFF
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      default:
+        aliases: [bulkstream-db]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    mem_limit: 352m
+    logging: *logging
+
+  php:
+    <<: *php
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      default:
+        aliases: [bulkstream-php]
+    mem_limit: 256m
+
+  # Drains the cargo pipeline (ProcessCargoPipeline jobs).
+  worker:
+    <<: *php
+    command: ["php", "artisan", "queue:work", "--sleep=1", "--tries=3", "--max-time=3600", "--memory=128"]
+    user: www-data
+    mem_limit: 160m
+
+  # Backstop scheduler: re-dispatches the pipeline every minute.
+  scheduler:
+    <<: *php
+    command: ["php", "artisan", "schedule:work"]
+    user: www-data
+    mem_limit: 96m
+
+  web:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    volumes:
+      - ../app/public:/var/www/html/public:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on: [php]
+    networks:
+      default:
+      edge:
+        aliases: [bulkstream-web]
+    mem_limit: 32m
+    logging: *logging
+
+volumes:
+  db-data:
+
+networks:
+  default:
+  edge:
+    name: loadline_default
+    external: true
