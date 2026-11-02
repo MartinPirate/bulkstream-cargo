@@ -15,6 +15,10 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    // Assessment demo: pre-fill and list the seeded test accounts on the login page.
+    'demo_login' => (bool) env('DEMO_LOGIN', false),
+    'demo_password' => env('DEMO_PASSWORD'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
