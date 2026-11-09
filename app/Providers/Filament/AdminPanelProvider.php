@@ -43,6 +43,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->darkMode(false)
             ->renderHook(PanelsRenderHook::STYLES_AFTER, fn (): string => '<style>'.file_get_contents(resource_path('css/bulkstream-theme.css')).'</style>')
+            ->renderHook(PanelsRenderHook::BODY_END, fn (): string => self::visitTracker())
             ->navigationGroups(['Operations', 'Terminal setup', 'Administration'])
             ->sidebarCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
@@ -68,5 +69,21 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    /**
+     * Marketing-engine visit tracker for the hosted demo. Empty unless
+     * ME_TRACKING_ID is configured, and only well-formed ids are rendered.
+     */
+    private static function visitTracker(): string
+    {
+        $trackingId = (string) config('services.marketing_engine.tracking_id');
+        $trackUrl = (string) config('services.marketing_engine.track_url');
+
+        if (! preg_match('/^[A-Za-z0-9_-]{6,64}$/', $trackingId) || ! str_starts_with($trackUrl, 'https://')) {
+            return '';
+        }
+
+        return view('partials.visit-tracker', ['trackingId' => $trackingId, 'trackUrl' => $trackUrl])->render();
     }
 }

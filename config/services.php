@@ -28,6 +28,13 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Visit tracking for the hosted demo only. Unset (the default) renders nothing,
+    // so local and repository checkouts never report visits.
+    'marketing_engine' => [
+        'tracking_id' => env('ME_TRACKING_ID'),
+        'track_url' => env('ME_TRACK_URL', 'https://engine.usesquareai.com/api/visitors/track'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

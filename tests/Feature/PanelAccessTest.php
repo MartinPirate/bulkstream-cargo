@@ -41,6 +41,20 @@ class PanelAccessTest extends TestCase
         $this->actingAs($admin)->get('/admin/manage-settings')->assertOk();
     }
 
+    public function test_visit_tracker_renders_only_when_configured_with_a_valid_id(): void
+    {
+        config(['services.marketing_engine.tracking_id' => null]);
+        $this->get('/admin/login')->assertOk()->assertDontSee('visitors/track', false);
+
+        config(['services.marketing_engine.tracking_id' => 'bulkstream_abc123']);
+        $this->get('/admin/login')->assertOk()
+            ->assertSee("var tid = 'bulkstream_abc123'", false)
+            ->assertSee('engine.usesquareai.com\/api\/visitors\/track', false);
+
+        config(['services.marketing_engine.tracking_id' => '"};alert(1)//']);
+        $this->get('/admin/login')->assertOk()->assertDontSee('visitors/track', false);
+    }
+
     public function test_operators_cannot_create_tanks(): void
     {
         $this->actingAs($this->makeUser(UserRole::Operator))->get('/admin/tanks/create')->assertForbidden();

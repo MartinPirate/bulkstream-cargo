@@ -12,6 +12,28 @@ A Laravel 13 + FilamentPHP 5 control panel for a bulk liquid port terminal, trac
 
 ---
 
+## Brief compliance checklist
+
+Every requirement in the assessment brief, and where it is implemented.
+
+| # | Requirement from the brief | Status | Where it lives |
+|---|---|---|---|
+| 1 | Workflow: vessel discharge → shore tanks → truck delivery | ✅ Done | `MovementDirection` enum (Inbound = vessel, Outbound = truck); `CargoMovement`, `Vessel`, `Tank` models |
+| 2 | Commodity: Crude Palm Oil (CPO), temperature-controlled, viscous | ✅ Done | `Commodity::CPO`: heated, 50–55 °C band, handling note; tunable in **Commodity profiles** |
+| 3 | Commodity: Crude Palm Olein (CPOL), higher fluidity | ✅ Done | `Commodity::CPOL`: ambient, 25–35 °C |
+| 4 | Commodity: Palm Fatty Acid Distillate (PFAD), viscous byproduct | ✅ Done | `Commodity::PFAD`: heated, 60–70 °C |
+| 5 | Capacity boundaries, with a custom domain exception on overflow | ✅ Done | `TankState::receive()` throws `TankCapacityExceededException`; MySQL `CHECK (balance_kg <= capacity_kg)` refuses overfills even if code is bypassed |
+| 6 | 0.5% transit loss on all inbound vessel flows | ✅ Done | `TransitLossPolicy`, applied to inbound only (`TerminalEngine.php:79`); default 0.50%, admin-configurable |
+| 7 | Out-of-order logs re-sorted by timestamp before balances change | ✅ Done | `MovementSequencer`: event time to the microsecond, then a fixed tie-break |
+| 8 | Atomic operations: no race conditions or duplicate allocation | ✅ Done | `SELECT … FOR UPDATE` in a transaction with a fixed lock order, idempotent `claim()`, `WithoutOverlapping` queue job; `ConcurrencyTest` races 20 OS processes into one tank |
+| 9 | Laravel + FilamentPHP, not procedural scripts | ✅ Done | Laravel 13 + Filament 5 |
+| 10 | Reactive frontend handlers | ✅ Done | 11 `live()` / `afterStateUpdated` handlers; movement and stock-correction forms preview loss, net, ullage and overflow as you type |
+| 11 | Backend entity state hooks | ✅ Done | `TankObserver` (blocks direct balance edits, capacity below stock, re-grading a full tank) and `CargoMovementObserver` (routing, dispatch after commit, immutability) |
+| 12 | Clear domain separation of concerns | ✅ Done | `packages/tank-terminal` has no Laravel imports; `app/Terminal` adapts it through ports |
+| 13 | Operational control dashboard | ✅ Done | Live widgets (stock per commodity, tank levels, alerts, recent movements), approvals, stock corrections, audit log |
+| 14 | Repository with the complete solution | ✅ Done | This repository |
+| 15 | Live demo environment | ✅ Done | https://bulkstream.139-162-184-72.sslip.io |
+
 ## The four domain rules: where each one lives
 
 | Rule from the brief | Implementation | Proven by |
@@ -52,6 +74,7 @@ thousands of movements can be summed without floating-point drift.
 - **Cargo movements**: a reactive entry form that previews transit loss, net quantity, ullage after, overflow and approval routing as you type. Status tabs, filters, and a **Simulate pipeline feed** action that emits a burst of out-of-order meter and weighbridge events so you can watch the sequencer and guards work.
 - **Approvals (maker-checker)**: releases at or above a configurable threshold (default 100 MT) wait for a supervisor, who can never approve their own entry. Approve and Decline actions carry notes.
 - **Stock corrections**: dip or ullage survey adjustments, requested by anyone and applied only after supervisor approval, through the same capacity and stock guards.
+- **Commodity profiles**: per-product storage band, heating and handling notes. Codes are fixed by the domain; admins tune the handling, and tank temperature alerts follow it.
 - **Tanks, vessels, users** with role-based access, **Settings** (loss rate, approval threshold, alarm levels) and an append-only **Audit log**.
 
 | Role | Can |
@@ -80,8 +103,14 @@ Seeded users: `admin@bulkstream.test`, `supervisor@bulkstream.test`, `operator@b
 php artisan test
 ```
 
-43 tests, 133 assertions: domain unit tests with in-memory fakes, feature tests against MySQL,
-and a multi-process concurrency test.
+51 tests, 160 assertions:
+
+| Suite | Covers |
+|---|---|
+| `tests/Unit/TankTerminal` | Domain core with in-memory fakes: capacity guard, transit-loss rounding, out-of-order sequencing |
+| `tests/Feature/Terminal` | Pipeline against MySQL, stock corrections (maker-checker), multi-process concurrency |
+| `tests/Feature/CommodityProfileTest` | Profile seeding and fallback, temperature-band DB check, edit permissions, HTML escaping |
+| `tests/Feature/PanelAccessTest` | Role-based access to every screen |
 
 ---
 
