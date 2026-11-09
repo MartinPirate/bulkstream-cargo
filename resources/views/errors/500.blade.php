@@ -1,0 +1,6 @@
+@extends('errors.layout')
+@section('code', '500')
+@section('accent', '#b91c1c')
+@section('level', '8')
+@section('title', 'Something went wrong on our side')
+@section('message', 'The error has been logged. Tank balances are only ever changed inside a database transaction, so a failure here leaves stock untouched.')

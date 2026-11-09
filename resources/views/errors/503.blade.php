@@ -1,0 +1,6 @@
+@extends('errors.layout')
+@section('code', '503')
+@section('accent', '#b45309')
+@section('level', '7')
+@section('title', 'Down for maintenance')
+@section('message', 'The terminal console is being updated and will be back shortly.')

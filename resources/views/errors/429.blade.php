@@ -1,0 +1,6 @@
+@extends('errors.layout')
+@section('code', '429')
+@section('accent', '#b45309')
+@section('level', '6')
+@section('title', 'Too many requests')
+@section('message', 'That was a lot of activity in a short time. Wait a minute, then try again.')

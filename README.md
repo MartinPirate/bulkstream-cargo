@@ -77,11 +77,35 @@ thousands of movements can be summed without floating-point drift.
 - **Commodity profiles**: per-product storage band, heating and handling notes. Codes are fixed by the domain; admins tune the handling, and tank temperature alerts follow it.
 - **Tanks, vessels, users** with role-based access, **Settings** (loss rate, approval threshold, alarm levels) and an append-only **Audit log**.
 
-| Role | Can |
-|---|---|
-| Operator | Record discharges and loadings, request stock corrections |
-| Supervisor | Above, plus approve or decline releases and corrections, manage vessels, view the audit log |
-| Admin | Everything, plus tanks, users and terminal settings |
+## Roles and permissions
+
+Three fixed roles, each building on the one below: **Operator → Supervisor → Admin**.
+Enforced server-side by Laravel policies (`app/Policies`) and re-checked inside the
+application services, so hiding a button is never the only guard.
+
+- **Operator** (floor staff, the *maker*): records vessel discharges and truck loadings, requests stock corrections, and can correct their own release while it still awaits approval. Sees dashboard, tanks, vessels and commodity profiles read-only.
+- **Supervisor** (shift lead, the *checker*): everything an Operator can do, plus approve or decline large releases (≥ 100 MT by default) and stock corrections, add and edit vessels, run *Simulate pipeline feed* / *Process pending now*, and read the audit log.
+- **Admin** (terminal manager): everything a Supervisor can do, plus tanks (deletable only when empty), commodity profiles, users and terminal settings, and deleting movements that are still pending or were declined.
+
+| Action | Operator | Supervisor | Admin |
+|---|:-:|:-:|:-:|
+| Record discharge / loading | ✅ | ✅ | ✅ |
+| Request stock correction | ✅ | ✅ | ✅ |
+| Approve or decline releases and corrections | ❌ | ✅ | ✅ |
+| Manage vessels | ❌ | ✅ | ✅ |
+| Simulate / process pipeline | ❌ | ✅ | ✅ |
+| Audit log | ❌ | ✅ | ✅ |
+| Tanks, commodity profiles | view | view | ✅ |
+| Users, terminal settings | ❌ | ❌ | ✅ |
+
+Rules no role can bypass:
+
+- **Maker-checker:** nobody approves their own entry, Admin included. A second person always signs off.
+- **Stock is never typed in.** Balances change only through movements and approved corrections, which pass the same capacity and stock guards.
+- **History is immutable.** Processed movements cannot be edited or deleted, and the audit log is append-only.
+- A refused screen returns a real `403` with a branded page that tells the user their role and who can help.
+
+Every row of the table, both the allowed and the refused side, is covered by `tests/Feature/RolePermissionsTest.php`.
 
 ## Run locally
 
@@ -103,7 +127,7 @@ Seeded users: `admin@bulkstream.test`, `supervisor@bulkstream.test`, `operator@b
 php artisan test
 ```
 
-51 tests, 160 assertions:
+63 tests, 245 assertions:
 
 | Suite | Covers |
 |---|---|
@@ -111,6 +135,7 @@ php artisan test
 | `tests/Feature/Terminal` | Pipeline against MySQL, stock corrections (maker-checker), multi-process concurrency |
 | `tests/Feature/CommodityProfileTest` | Profile seeding and fallback, temperature-band DB check, edit permissions, HTML escaping |
 | `tests/Feature/PanelAccessTest` | Role-based access to every screen |
+| `tests/Feature/RolePermissionsTest` | The full role matrix (allowed and refused), maker-checker for every approving role, branded 403/404 pages |
 
 ---
 

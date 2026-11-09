@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('code', '404')
+@section('level', '2')
+@section('title', 'Nothing in this tank')
+@section('message', 'The page or record you asked for does not exist. It may have been removed, or the link is mistyped.')
