@@ -57,6 +57,13 @@ if [ "$first_deploy" = yes ]; then
 fi
 
 LOG "Starting"
-remote "cd $ROOT && $COMPOSE up -d && $COMPOSE restart worker scheduler"
+# web (nginx) is restarted too: it caches the php container's IP at start, so a
+# recreated php container otherwise leaves nginx proxying to a dead address (502).
+remote "cd $ROOT && $COMPOSE up -d && $COMPOSE restart worker scheduler web"
 remote "cd $ROOT && $COMPOSE ps --format '  {{.Service}}\t{{.Status}}'"
-remote "docker run --rm --network loadline_default curlimages/curl:8.10.1 -s -o /dev/null -w '  bulkstream-web:8080 -> HTTP %{http_code}\n' --retry 15 --retry-connrefused --retry-delay 2 http://bulkstream-web:8080/admin/login"
+
+# -o /tmp/body, not /dev/null: the curl image cannot write /dev/null (exit 23),
+# which hid a 502 here once. Fail the deploy unless the login page answers 200.
+code=$(remote "docker run --rm --network loadline_default curlimages/curl:8.10.1 -s -o /tmp/body -w '%{http_code}' --retry 15 --retry-connrefused --retry-delay 2 http://bulkstream-web:8080/admin/login" || true)
+[ "$code" = "200" ] || DIE "Health check failed: bulkstream-web:8080/admin/login -> HTTP ${code:-none}"
+LOG "Healthy: bulkstream-web:8080/admin/login -> HTTP 200"
