@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Tanks\Schemas;
 
+use App\Filament\Support\RichOptions;
+use App\Models\CommodityProfile;
 use App\Models\Tank;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -19,6 +21,7 @@ class TankForm
             ->components([
                 Section::make('Tank')
                     ->description('Stock is never typed in here: it only changes through cargo movements and approved stock corrections.')
+                    ->columnSpanFull()
                     ->columns(2)
                     ->schema([
                         TextInput::make('code')
@@ -27,14 +30,19 @@ class TankForm
                             ->unique(ignoreRecord: true)
                             ->placeholder('T-104'),
                         Select::make('commodity')
-                            ->options(Commodity::options())
+                            ->options(fn (): array => RichOptions::commodities())
+                            ->native(false)
+                            ->allowHtml()
+                            ->searchable()
+                            ->placeholder('Choose a commodity profile')
+                            ->columnSpanFull()
                             ->required()
                             ->live()
                             // Re-assigning a tank that still holds product would mix grades.
                             ->disabled(fn (?Tank $record): bool => $record !== null && $record->balance_kg > 0)
-                            ->helperText(fn (Get $get): ?string => filled($get('commodity'))
-                                ? Commodity::from($get('commodity'))->handlingNote()
-                                : null),
+                            ->helperText(fn (?Tank $record): ?string => $record !== null && $record->balance_kg > 0
+                                ? 'Locked while the tank holds product, to avoid mixing grades.'
+                                : 'Handling bands come from Terminal setup → Commodity profiles.'),
                         TextInput::make('capacity_kg')
                             ->label('Capacity (MT)')
                             ->required()
@@ -59,9 +67,11 @@ class TankForm
                                 if (blank($get('commodity'))) {
                                     return null;
                                 }
-                                [$min, $max] = Commodity::from($get('commodity'))->storageTemperatureRange();
+                                $commodity = Commodity::tryFrom((string) $get('commodity'));
 
-                                return "Recommended {$min}–{$max} °C.";
+                                return $commodity === null
+                                    ? null
+                                    : 'Recommended '.CommodityProfile::for($commodity)->temperatureBandLabel().'.';
                             }),
                         Toggle::make('is_active')
                             ->label('In service')

@@ -78,13 +78,19 @@ class Tank extends Model
         return $this->capacity_kg > 0 ? round(($this->balance_kg / $this->capacity_kg) * 100, 1) : 0.0;
     }
 
+    /** The editable handling profile for this tank's commodity. */
+    public function profile(): CommodityProfile
+    {
+        return CommodityProfile::for($this->commodity);
+    }
+
     public function isTemperatureOutOfRange(): bool
     {
         if ($this->temperature_c === null || $this->balance_kg === 0) {
             return false;
         }
 
-        [$min, $max] = $this->commodity->storageTemperatureRange();
+        [$min, $max] = $this->profile()->temperatureRange();
 
         return (float) $this->temperature_c < $min || (float) $this->temperature_c > $max;
     }

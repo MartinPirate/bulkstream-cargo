@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\CargoMovements\Schemas;
 
 use App\Enums\VesselStatus;
+use App\Filament\Support\RichOptions;
 use App\Models\Tank;
 use App\Models\Vessel;
 use App\Settings\TerminalSettings;
@@ -68,13 +69,10 @@ class CargoMovementForm
                             ->required(fn (Get $get) => $get('direction') === MovementDirection::Outbound->value),
                         Select::make('tank_id')
                             ->label('Shore tank')
-                            ->options(fn () => Tank::query()->active()->orderBy('code')->get()
-                                ->mapWithKeys(fn (Tank $t) => [$t->id => sprintf(
-                                    '%s · %s · %s free',
-                                    $t->code,
-                                    $t->commodity->shortLabel(),
-                                    $t->freeCapacity()->format(),
-                                )]))
+                            ->options(fn (): array => RichOptions::tanks(Tank::query()->active()->orderBy('code')->get()))
+                            ->native(false)
+                            ->allowHtml()
+                            ->placeholder('Search by tank code or commodity')
                             ->searchable()
                             ->required()
                             ->live(),

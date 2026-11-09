@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Tanks\Tables;
 
+use App\Filament\Support\RichOptions;
 use App\Models\Tank;
 use App\Settings\TerminalSettings;
 use Filament\Actions\EditAction;
@@ -30,11 +31,7 @@ class TanksTable
                     ->badge()
                     ->formatStateUsing(fn (Commodity $state) => $state->shortLabel())
                     ->tooltip(fn (Tank $record) => $record->commodity->label())
-                    ->color(fn (Commodity $state) => match ($state) {
-                        Commodity::CPO => 'warning',
-                        Commodity::CPOL => 'success',
-                        Commodity::PFAD => 'gray',
-                    }),
+                    ->color(fn (Commodity $state) => RichOptions::commodityColor($state)),
                 TextColumn::make('balance_kg')
                     ->label('Stock')
                     ->formatStateUsing(fn (Tank $record) => $record->balance()->format())
